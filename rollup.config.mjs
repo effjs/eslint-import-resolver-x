@@ -10,13 +10,13 @@ export default {
     {
       format: 'esm',
       dir: 'dist',
-      entryFileNames: 'index-esm.js',
+      entryFileNames: 'index.js',
       plugins: [terser()],
     },
     {
       format: 'cjs',
       dir: 'dist',
-      entryFileNames: 'index-cjs.js',
+      entryFileNames: 'index.cjs',
       plugins: [terser()],
     },
   ],

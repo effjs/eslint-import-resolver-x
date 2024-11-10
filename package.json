@@ -19,13 +19,13 @@
   "exports": {
     ".": {
       "types": "./index.d.ts",
-      "import": "./index-esm.js",
-      "require": "./index-cjs.js"
+      "import": "./index.js",
+      "require": "./index.cjs"
     },
     "./package.json": "./package.json"
   },
-  "main": "./index-cjs.js",
-  "module": "./index-esm.js",
+  "main": "./index.cjs",
+  "module": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
     "postbuild": "node --no-warnings tools/postbuild.mjs",
