@@ -135,18 +135,17 @@ function getMappedPath(
 
   let projectConfig: TsConfigResult | null = null
 
-  const { ext } = path.parse(file)
+  const { ext, dir } = path.parse(file)
 
-  const fromCache = fileTsJsConfigCache.get(file)
-
-  if (fromCache) {
-    projectConfig = fromCache
-  } else {
-    projectConfig = getTsconfig(file, ext.includes('js') ? 'jsconfig.json' : 'tsconfig.json')
-    if (projectConfig) fileTsJsConfigCache.set(file, projectConfig)
+  if (!/node_modules/.test(dir)) {
+    // get ts config by file path for resolving it and find closest mapper
+    projectConfig = getTsconfig(file, ext.includes('js') ? 'jsconfig.json' : 'tsconfig.json', fileTsJsConfigCache)
   }
 
-  if (projectConfig) logger('project config by file path:', projectConfig?.path)
+  if (projectConfig) {
+    fileTsJsConfigCache.set(file, projectConfig)
+    logger('project config by file path:', projectConfig?.path)
+  }
 
   const closestMapper = currentMatchersOfCwd?.find((mapper) => {
     return mapper.path === projectConfig?.path
