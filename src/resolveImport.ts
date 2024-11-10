@@ -17,7 +17,7 @@ import type { TsConfigResult } from 'get-tsconfig'
 import type { Version } from 'is-bun-module'
 
 const fileTsJsConfigCache: Map<string, TsConfigResult> = new Map()
-const possiblePathsBySpecifier: Map<{ specifier: string; configPath: TsConfigResult['path'] }, string[]> = new Map()
+const possiblePathsBySpecifier: Map<string, { paths: string[]; path: TsConfigResult['path'] }> = new Map()
 
 /**
  * Resolve an import specifier to a path
@@ -129,9 +129,8 @@ function getMappedPath(
     if (isFile(resolved)) {
       return resolved
     }
+    return undefined
   }
-
-  let paths: string[] = []
 
   let projectConfig: TsConfigResult | null = null
 
@@ -155,37 +154,47 @@ function getMappedPath(
     logger('found closest mapper by config path:', closestMapper.path)
   }
 
-  const possiblePaths = (
-    closestMapper
-      ? closestMapper.matcher(specifier)
-      : currentMatchersOfCwd.map((mapper) => mapper?.matcher(specifier)).flat()
-  )
+  const matcherResult = closestMapper
+    ? closestMapper.matcher(specifier)
+    : currentMatchersOfCwd.map((mapper) => mapper?.matcher(specifier)).flat()
+
+  const matcherPaths = matcherResult
     .map((item) => [
       ...extensions.map((ext) => `${item}${ext}`),
       ...originalExtensions.map((ext) => `${item}/index${ext}`),
     ])
     .flat()
 
-  logger('possible paths:', possiblePaths)
+  logger('matcher paths:', matcherPaths)
 
-  paths = projectConfig?.path
-    ? (possiblePathsBySpecifier.get({ specifier, configPath: projectConfig.path }) ?? [])
-    : possiblePaths.filter((mappedPath) => {
-        try {
-          const stat = fs.statSync(mappedPath, { throwIfNoEntry: false })
-          if (stat === undefined) return false
-          if (stat.isFile()) return true
-          if (stat.isDirectory()) {
-            return isModule(mappedPath)
-          }
-        } catch {
-          return false
-        }
+  const possiblePaths = possiblePathsBySpecifier.get(specifier)
 
-        return false
-      })
+  if (possiblePaths && possiblePaths.path === closestMapper?.path) {
+    logger(
+      `found matching paths from cache by specifier ${specifier} and config ${possiblePaths.path} path:`,
+      possiblePaths.paths
+    )
+    return possiblePaths.paths[0]
+  }
 
-  if (projectConfig?.path) possiblePathsBySpecifier.set({ specifier, configPath: projectConfig.path }, paths)
+  const paths = matcherPaths.filter((mappedPath) => {
+    try {
+      const stat = fs.statSync(mappedPath, { throwIfNoEntry: false })
+      if (stat === undefined) return false
+      if (stat.isFile()) return true
+      if (stat.isDirectory()) {
+        return isModule(mappedPath)
+      }
+    } catch {
+      return false
+    }
+
+    return false
+  })
+
+  if (closestMapper) {
+    possiblePathsBySpecifier.set(specifier, { paths, path: closestMapper.path })
+  }
 
   if (paths.length > 1) {
     logger('found multiple matching paths:', paths)
