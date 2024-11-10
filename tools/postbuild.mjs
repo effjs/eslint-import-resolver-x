@@ -17,6 +17,10 @@ newPackageJson.publishConfig = {
   access: 'public',
 }
 
+newPackageJson.engines = {
+  node: '>=16',
+}
+
 newPackageJson = sortPackageJson(newPackageJson)
 
 fs.writeFileSync('dist/package.json', JSON.stringify(newPackageJson, null, 2))

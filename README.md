@@ -129,13 +129,13 @@ Add the following to your `.eslintrc` config:
 
 ## Options from [`enhanced-resolve`][]
 
-#### `conditionNames` - [See default](src/default.ts)
+#### `conditionNames` - [See default](src/default.ts#1)
 
-#### `extensions` - [See default](src/default.ts)
+#### `extensions` - [See default](src/default.ts#20)
 
-#### `extensionAlias` - [See default](src/default.ts)
+#### `extensionAlias` - [See default](src/default.ts#22)
 
-### `mainFields` - [See default](src/default.ts)
+### `mainFields` - [See default](src/default.ts#35)
 
 ### Other options
 

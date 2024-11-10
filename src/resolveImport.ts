@@ -13,9 +13,11 @@ import { logger } from './logger'
 
 import type { InternalResolverOptions, Matcher } from './types'
 import type { Resolver } from 'enhanced-resolve'
+import type { TsConfigResult } from 'get-tsconfig'
 import type { Version } from 'is-bun-module'
 
-const fileTsConfigCache = new Map()
+const fileTsJsConfigCache: Map<string, TsConfigResult> = new Map()
+const possiblePathsBySpecifier: Map<{ specifier: string; configPath: TsConfigResult['path'] }, string[]> = new Map()
 
 /**
  * Resolve an import specifier to a path
@@ -122,68 +124,74 @@ function getMappedPath(
 
   extensions = ['', ...extensions]
 
-  let paths: string[] = []
-
   if (RELATIVE_PATH_PATTERN.test(specifier)) {
     const resolved = path.resolve(path.dirname(file), specifier)
     if (isFile(resolved)) {
-      paths = [resolved]
+      return resolved
     }
-  } else {
-    let projectConfig
-    const isJsconfig = currentMatchersOfCwd.every((mapper) => mapper.path.includes('jsconfig'))
-
-    const fromCache = fileTsConfigCache.get(file)
-
-    if (fromCache) {
-      projectConfig = fromCache
-    } else {
-      projectConfig = getTsconfig(file, isJsconfig ? 'jsconfig.json' : 'tsconfig.json')
-    }
-
-    if (projectConfig) logger('project config by file path:', projectConfig?.path)
-
-    const closestMapper = currentMatchersOfCwd?.find((mapper) => {
-      return mapper.path === projectConfig?.path
-    })
-
-    if (closestMapper) {
-      logger('found closest mapper by config path:', closestMapper.path)
-    }
-
-    const possiblePaths = (
-      closestMapper
-        ? closestMapper.matcher(specifier)
-        : currentMatchersOfCwd.map((mapper) => mapper?.matcher(specifier)).flat()
-    )
-      .map((item) => [
-        ...extensions.map((ext) => `${item}${ext}`),
-        ...originalExtensions.map((ext) => `${item}/index${ext}`),
-      ])
-      .flat()
-
-    logger('possible paths:', possiblePaths)
-
-    paths = possiblePaths.filter((mappedPath) => {
-      try {
-        const stat = fs.statSync(mappedPath, { throwIfNoEntry: false })
-        if (stat === undefined) return false
-        if (stat.isFile()) return true
-        if (stat.isDirectory()) {
-          return isModule(mappedPath)
-        }
-      } catch {
-        return false
-      }
-
-      return false
-    })
-
-    logger('paths', paths)
   }
 
+  let paths: string[] = []
+
+  let projectConfig: TsConfigResult | null = null
+
+  const { ext } = path.parse(file)
+
+  const fromCache = fileTsJsConfigCache.get(file)
+
+  if (fromCache) {
+    projectConfig = fromCache
+  } else {
+    projectConfig = getTsconfig(file, ext.includes('js') ? 'jsconfig.json' : 'tsconfig.json')
+    if (projectConfig) fileTsJsConfigCache.set(file, projectConfig)
+  }
+
+  if (projectConfig) logger('project config by file path:', projectConfig?.path)
+
+  const closestMapper = currentMatchersOfCwd?.find((mapper) => {
+    return mapper.path === projectConfig?.path
+  })
+
+  if (closestMapper) {
+    logger('found closest mapper by config path:', closestMapper.path)
+  }
+
+  const possiblePaths = (
+    closestMapper
+      ? closestMapper.matcher(specifier)
+      : currentMatchersOfCwd.map((mapper) => mapper?.matcher(specifier)).flat()
+  )
+    .map((item) => [
+      ...extensions.map((ext) => `${item}${ext}`),
+      ...originalExtensions.map((ext) => `${item}/index${ext}`),
+    ])
+    .flat()
+
+  logger('possible paths:', possiblePaths)
+
+  paths = projectConfig?.path
+    ? (possiblePathsBySpecifier.get({ specifier, configPath: projectConfig.path }) ?? [])
+    : possiblePaths.filter((mappedPath) => {
+        try {
+          const stat = fs.statSync(mappedPath, { throwIfNoEntry: false })
+          if (stat === undefined) return false
+          if (stat.isFile()) return true
+          if (stat.isDirectory()) {
+            return isModule(mappedPath)
+          }
+        } catch {
+          return false
+        }
+
+        return false
+      })
+
+  if (projectConfig?.path) possiblePathsBySpecifier.set({ specifier, configPath: projectConfig.path }, paths)
+
   if (paths.length > 1) {
-    logger('found multiple matching ts paths:', paths)
+    logger('found multiple matching paths:', paths)
+  } else {
+    logger('found matching paths:', paths)
   }
 
   return paths[0]
