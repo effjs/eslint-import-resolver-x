@@ -1,0 +1,77 @@
+{
+  "name": "@helljs/eslint-import-resolver-x",
+  "version": "1.0.0",
+  "description": "This plugin adds support `jsconfig` or `tsconfig` aliases to `eslint-plugin-import`",
+  "keywords": [
+    "tsconfig",
+    "jsconfig",
+    "eslint",
+    "import",
+    "resolver",
+    "plugin",
+    "typescript",
+    "javascript"
+  ],
+  "repository": "git+https://github.com/helljs/eslint-import-resolver-x",
+  "license": "ISC",
+  "author": "Roman Olin <ceo.roman@gmail.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index-esm.js",
+      "require": "./dist/index-cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index-cjs.js",
+  "module": "dist/index-esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "postbuild": "node --no-warnings tools/postbuild.mjs",
+    "build": "run-p build:*",
+    "build:lib": "rollup -c rollup.config.mjs",
+    "build:dts": "dts-bundle-generator -o dist/index.d.ts src/index.ts",
+    "lint": "TIMING=true eslint ./src",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nolyfill/is-core-module": "1.0.39",
+    "debug": "4.3.7",
+    "enhanced-resolve": "5.17.1",
+    "eslint-module-utils": "2.12.0",
+    "fast-glob": "3.3.2",
+    "get-tsconfig": "4.8.1",
+    "is-bun-module": "1.2.1",
+    "is-glob": "4.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.14.0",
+    "@rollup/plugin-commonjs": "28.0.1",
+    "@rollup/plugin-node-resolve": "15.3.0",
+    "@rollup/plugin-typescript": "12.1.1",
+    "@types/debug": "4.1.12",
+    "@types/eslint__js": "8.42.3",
+    "@types/is-glob": "4.0.4",
+    "@types/node": "22.9.0",
+    "dts-bundle-generator": "9.5.1",
+    "eslint": "9.14.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-prettier": "5.2.1",
+    "globals": "15.12.0",
+    "npm-run-all2": "^7.0.1",
+    "prettier": "3.3.3",
+    "rollup": "4.25.0",
+    "sort-package-json": "^2.10.1",
+    "typescript": "5.6.3",
+    "typescript-eslint": "8.13.0"
+  },
+  "peerDependencies": {
+    "eslint": "*"
+  },
+  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee",
+  "engines": {
+    "node": ">=16"
+  }
+}

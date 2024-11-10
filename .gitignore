@@ -1,0 +1,5 @@
+.*cache
+.type-coverage
+dist
+node_modules
+*.log

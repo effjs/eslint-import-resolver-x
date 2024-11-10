@@ -1,0 +1,36 @@
+# Ignore build output directories
+dist
+out
+build
+
+# Ignore node modules
+node_modules
+
+# Ignore specific configuration files
+*.config.js
+
+# Ignore environment variables files
+.env
+.env.*
+
+# Ignore lock files
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Ignore logs
+*.log
+
+# Ignore compiled files
+*.min.js
+*.min.css
+
+# Ignore specific file types
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Ignore other generated files
+coverage/
