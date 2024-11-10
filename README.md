@@ -12,22 +12,7 @@ We use `strace` package for count of [fstat](`https://nodejs.org/api/fs.html#fsf
 
 For example you codebase has multiple packages with 100 000 LOC ()
 
-```
-The following data depends directly on the number of imports in your case, but the comparison table is filled with data on the same code base
-```
-
-50641
-1
-78
-1
-3
-2
-32137
-81592
-1194240
-2
-11734655
-2
+> The following data depends directly on the number of imports in your case, but the comparison table is filled with data on the same code base
 
 | syscall    | eslint-import-resolver-x | eslint-import-resolver-typescript |
 | ---------- | ------------------------ | --------------------------------- |
