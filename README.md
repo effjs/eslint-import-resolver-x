@@ -25,7 +25,7 @@ Example you codebase has multiple packages with 100k LOC and more
 
 We are interested in how many accesses to the file system occurred during the linting process. We can pay attention to `statx` syscall.
 
-`eslint-import-resolver-x` makes calls `statx` 100 times less.
+`eslint-import-resolver-x` makes calls `statx` 10x+ times less.
 
 **If you notice an increase in linting performance in your CI on large code bases, write your feedback [here](https://github.com/helljs/eslint-import-resolver-x/discussions/1)**
 
@@ -150,3 +150,4 @@ You can pass through other options of [`enhanced-resolve`][] directly
 [`typescript`]: https://www.typescriptlang.org
 [`javascript`]: https://ecma-international.org/
 [isc]: https://opensource.org/licenses/ISC
+[`eslint-import-resolver-typescript`]: https://www.npmjs.com/package/eslint-import-resolver-typescript
