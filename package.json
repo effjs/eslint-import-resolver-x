@@ -18,15 +18,15 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index-esm.js",
-      "require": "./dist/index-cjs.js"
+      "types": "./index.d.ts",
+      "import": "./index-esm.js",
+      "require": "./index-cjs.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "dist/index-cjs.js",
-  "module": "dist/index-esm.js",
-  "types": "dist/index.d.ts",
+  "main": "./index-cjs.js",
+  "module": "./index-esm.js",
+  "types": "./index.d.ts",
   "scripts": {
     "postbuild": "node --no-warnings tools/postbuild.mjs",
     "build": "run-p build:*",
