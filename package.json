@@ -1,6 +1,6 @@
 {
   "name": "@helljs/eslint-import-resolver-x",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "This plugin adds support `jsconfig` or `tsconfig` aliases to `eslint-plugin-import`",
   "keywords": [
     "tsconfig",
