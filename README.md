@@ -140,3 +140,13 @@ Add the following to your `.eslintrc` config:
 ### Other options
 
 You can pass through other options of [`enhanced-resolve`][] directly
+
+## License
+
+[ISC][]
+
+[`eslint-plugin-import`]: https://www.npmjs.com/package/eslint-plugin-import
+[`enhanced-resolve`]: https://www.npmjs.com/package/enhanced-resolve
+[`typescript`]: https://www.typescriptlang.org
+[`javascript`]: https://ecma-international.org/
+[isc]: https://opensource.org/licenses/ISC
