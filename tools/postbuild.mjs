@@ -23,4 +23,6 @@ newPackageJson.engines = {
 
 newPackageJson = sortPackageJson(newPackageJson)
 
+fs.copyFileSync('README.md', 'dist/README.md')
+
 fs.writeFileSync('dist/package.json', JSON.stringify(newPackageJson, null, 2))
