@@ -19,3 +19,15 @@ export type Matcher = {
   path: string
   config: TsConfigJsonResolved
 }
+
+export type ResultNotFound = {
+  found: false
+  path?: undefined
+}
+
+export type ResultFound = {
+  found: true
+  path: string | null
+}
+
+export type ResolvedResult = ResultNotFound | ResultFound
