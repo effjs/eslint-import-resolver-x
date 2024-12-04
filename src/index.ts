@@ -59,7 +59,7 @@ export function resolve(specifier: string, file: string, options?: ResolverOptio
   return result
 }
 
-export function createCustomResolver(options: ResolverOptions) {
+export function createImportResolver(options: ResolverOptions) {
   const resolver = ResolverFactory.createResolver({
     ...options,
     conditionNames: options?.conditionNames ?? defaultConditionNames,
