@@ -41,9 +41,8 @@ jobs:
         run: pnpm build
 
       - name: Publish to npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: 'dist'
         run: |
           ls -l
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           npm publish
