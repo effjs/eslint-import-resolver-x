@@ -11,7 +11,7 @@ import { isFile, isModule, removeQuerystring } from './helpers'
 import { init } from './init'
 import { logger } from './logger'
 
-import type { InternalResolverOptions, Matcher } from './types'
+import type { InternalResolverOptions, Matcher, ResolvedResult } from './types'
 import type { Resolver } from 'enhanced-resolve'
 import type { TsConfigResult } from 'get-tsconfig'
 import type { Version } from 'is-bun-module'
@@ -25,14 +25,14 @@ const possiblePathsBySpecifier: Map<string, { paths: string[]; path: TsConfigRes
  * @param {string} file path of the file importing the specifier
  * @param {InternalResolverOptions} options options for the resolver
  * @param {Resolver} resolver resolver to use for resolving
- * @returns { found: boolean; path?: string | null } whether the import was found and the resolved path
+ * @returns {ResolvedResult} whether the import was found and the resolved path
  */
 export function resolveImport(
   specifier: string,
   file: string,
   options: InternalResolverOptions,
   resolver: Resolver
-): { found: boolean; path?: string | null } {
+): ResolvedResult {
   logger('Resolving:', `'${specifier}'`, 'from:', file)
 
   specifier = removeQuerystring(specifier)
