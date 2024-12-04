@@ -61,6 +61,27 @@ yarn add -D eslint-plugin-import @helljs/eslint-import-resolver-x
 
 ## Configuration
 
+If you are using `eslint-plugin-import-x@>=4.5.0`, you can use import/require to reference `eslint-import-resolver-x` directly in your ESLint flat config:
+
+```js
+// eslint.config.js
+const {
+  createImportResolver,
+} = require('eslint-import-resolver-x')
+
+module.exports = [{
+  settings: {
+    "import/resolver-x": [
+      createImportResolver({
+        alwaysTryTypes: true,
+        project: "path/to/folder",
+        // ...
+      }),
+    ];
+  }
+}]
+```
+
 Add the following to your `.eslintrc` config:
 
 ### TypeScript
