@@ -34,13 +34,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
+      - name: Publish to npm
+        uses: tobua/release-npm-action@v3
         with:
-          publish: yarn release
-          commit: 'chore: release @helljs/eslint-import-resolver-x'
-          title: 'chore: release e@helljs/eslint-import-resolver-x'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
