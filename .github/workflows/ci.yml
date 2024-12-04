@@ -19,16 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup target Node.js to enable Corepack
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node }}
-          cache: 'pnpm'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node.js ${{ matrix.node }} with cache
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
