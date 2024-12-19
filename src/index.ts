@@ -4,17 +4,18 @@ import { CachedInputFileSystem, ResolverFactory } from 'enhanced-resolve'
 
 import { defaultConditionNames, defaultExtensionAlias, defaultExtensions, defaultMainFields } from './default'
 import { digestHashObject } from './helpers'
+import { init } from './init'
 import { logger } from './logger'
 import { resolveImport } from './resolveImport'
 
-import type { InternalResolverOptions, ResolvedResult, ResolverOptions } from './types'
+import type { InternalResolverOptions, Matcher, ResolvedResult, ResolverOptions } from './types'
 import type { Resolver } from 'enhanced-resolve'
 
 const times = []
 
 let cachedOptions: InternalResolverOptions
-let previousOptionsHash: ReturnType<typeof digestHashObject>
-let optionsHash: ReturnType<typeof digestHashObject>
+let previousOptionsHash: ReturnType<typeof digestHashObject> | undefined
+let optionsHash: ReturnType<typeof digestHashObject> | undefined
 let resolverCachedOptions: InternalResolverOptions
 let resolver: Resolver | undefined
 
@@ -25,7 +26,7 @@ export const interfaceVersion = 2
  * @param file the importing file's full path; i.e. '/usr/local/bin/file.js'
  * @param options
  */
-export function resolve(specifier: string, file: string, options?: ResolverOptions | undefined | null): ResolvedResult {
+export function resolve(specifier: string, file: string, options?: ResolverOptions): ResolvedResult {
   let t0: DOMHighResTimeStamp = 0
 
   if (options?.performanceToLog) t0 = performance.now()
@@ -43,12 +44,14 @@ export function resolve(specifier: string, file: string, options?: ResolverOptio
     }
   }
 
+  const matchers: Matcher[] = init(options ?? {}, optionsHash ?? digestHashObject(options))
+
   if (!resolver || resolverCachedOptions !== cachedOptions) {
     resolver = ResolverFactory.createResolver(cachedOptions)
     resolverCachedOptions = cachedOptions
   }
 
-  const result = resolveImport(specifier, file, cachedOptions, resolver)
+  const result = resolveImport(matchers, specifier, file, cachedOptions, resolver)
 
   if (options?.performanceToLog) {
     const t1 = performance.now()
@@ -60,15 +63,21 @@ export function resolve(specifier: string, file: string, options?: ResolverOptio
 }
 
 export function createImportResolver(options: ResolverOptions) {
-  const resolver = ResolverFactory.createResolver({
-    ...options,
-    conditionNames: options?.conditionNames ?? defaultConditionNames,
-    extensions: options?.extensions ?? defaultExtensions,
-    extensionAlias: options?.extensionAlias ?? defaultExtensionAlias,
-    mainFields: options?.mainFields ?? defaultMainFields,
-    fileSystem: new CachedInputFileSystem(fs, 5 * 1000),
-    useSyncFileSystemCalls: true,
-  })
+  if (!cachedOptions || previousOptionsHash !== (optionsHash = digestHashObject(options))) {
+    previousOptionsHash = optionsHash
+    cachedOptions = {
+      ...options,
+      conditionNames: options?.conditionNames ?? defaultConditionNames,
+      extensions: options?.extensions ?? defaultExtensions,
+      extensionAlias: options?.extensionAlias ?? defaultExtensionAlias,
+      mainFields: options?.mainFields ?? defaultMainFields,
+      fileSystem: new CachedInputFileSystem(fs, 5 * 1000),
+      useSyncFileSystemCalls: true,
+    }
+  }
+
+  const matchers: Matcher[] = init(options, optionsHash ?? digestHashObject(options))
+  const resolver = ResolverFactory.createResolver(cachedOptions)
 
   return {
     name: 'eslint-import-resolver-x',
@@ -78,7 +87,7 @@ export function createImportResolver(options: ResolverOptions) {
 
       if (options?.performanceToLog) t0 = performance.now()
 
-      const result = resolveImport(modulePath, source, cachedOptions, resolver)
+      const result = resolveImport(matchers, modulePath, source, cachedOptions, resolver)
 
       if (options?.performanceToLog) {
         const t1 = performance.now()

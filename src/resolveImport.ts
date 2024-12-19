@@ -8,7 +8,6 @@ import { isBunModule } from 'is-bun-module'
 import { JS_EXT_PATTERN, RELATIVE_PATH_PATTERN } from './constants'
 import { defaultExtensions } from './default'
 import { isFile, isModule, removeQuerystring } from './helpers'
-import { init } from './init'
 import { logger } from './logger'
 
 import type { InternalResolverOptions, Matcher, ResolvedResult } from './types'
@@ -21,6 +20,7 @@ const possiblePathsBySpecifier: Map<string, { paths: string[]; path: TsConfigRes
 
 /**
  * Resolve an import specifier to a path
+ * @param {Matcher[]} matchers matchers by digest of options
  * @param {string} specifier specifier of import to resolve
  * @param {string} file path of the file importing the specifier
  * @param {InternalResolverOptions} options options for the resolver
@@ -28,6 +28,7 @@ const possiblePathsBySpecifier: Map<string, { paths: string[]; path: TsConfigRes
  * @returns {ResolvedResult} whether the import was found and the resolved path
  */
 export function resolveImport(
+  matchers: Matcher[],
   specifier: string,
   file: string,
   options: InternalResolverOptions,
@@ -46,9 +47,7 @@ export function resolveImport(
     }
   }
 
-  const currentMatchersOfCwd = init(options)
-
-  const mappedPath = getMappedPath(currentMatchersOfCwd, specifier, file, options.extensions)
+  const mappedPath = getMappedPath(matchers, specifier, file, options.extensions)
 
   if (mappedPath) {
     logger('matched ts path:', mappedPath)
@@ -70,7 +69,13 @@ export function resolveImport(
     !path.isAbsolute(specifier) &&
     !specifier.startsWith('.')
   ) {
-    const definitelyTyped = resolveImport('@types' + path.sep + mangleScopedPackage(specifier), file, options, resolver)
+    const definitelyTyped = resolveImport(
+      matchers,
+      '@types' + path.sep + mangleScopedPackage(specifier),
+      file,
+      options,
+      resolver
+    )
     if (definitelyTyped.found) {
       return definitelyTyped
     }
@@ -109,13 +114,14 @@ function mangleScopedPackage(moduleName: string): string {
 
 /**
  * Get the mapped path for a given import specifier
+ * @param {Matcher[]} matchers matchers by digest of options
  * @param {string} specifier specifier of import to resolve
  * @param {string} file path of the file importing the specifier
  * @param {string[]} extensions extensions to try
  * @returns mapped path if found, undefined otherwise
  */
 function getMappedPath(
-  currentMatchersOfCwd: Matcher[],
+  matchers: Matcher[],
   specifier: string,
   file: string,
   extensions = defaultExtensions
@@ -146,17 +152,17 @@ function getMappedPath(
     logger('project config by file path:', projectConfig?.path)
   }
 
-  const closestMapper = currentMatchersOfCwd?.find((mapper) => {
-    return mapper.path === projectConfig?.path
+  const closestMatcher = matchers?.find((matcher) => {
+    return matcher.path === projectConfig?.path
   })
 
-  if (closestMapper) {
-    logger('found closest mapper by config path:', closestMapper.path)
+  if (closestMatcher) {
+    logger('found closest matcher by config path:', closestMatcher.path)
   }
 
-  const matcherResult = closestMapper
-    ? closestMapper.matcher(specifier)
-    : currentMatchersOfCwd.map((mapper) => mapper?.matcher(specifier)).flat()
+  const matcherResult = closestMatcher
+    ? closestMatcher.matcher(specifier)
+    : matchers.map((mapper) => mapper?.matcher(specifier)).flat()
 
   const matcherPaths = matcherResult
     .map((item) => [
@@ -169,7 +175,7 @@ function getMappedPath(
 
   const possiblePaths = possiblePathsBySpecifier.get(specifier)
 
-  if (possiblePaths && possiblePaths.path === closestMapper?.path) {
+  if (possiblePaths && possiblePaths.path === closestMatcher?.path) {
     logger(
       `found matching paths from cache by specifier ${specifier} and config ${possiblePaths.path} path:`,
       possiblePaths.paths
@@ -192,8 +198,8 @@ function getMappedPath(
     return false
   })
 
-  if (closestMapper) {
-    possiblePathsBySpecifier.set(specifier, { paths, path: closestMapper.path })
+  if (closestMatcher) {
+    possiblePathsBySpecifier.set(specifier, { paths, path: closestMatcher.path })
   }
 
   if (paths.length > 1) {

@@ -7,24 +7,26 @@ import isGlob from 'is-glob'
 import { isFile } from './helpers'
 import { logger } from './logger'
 
-import type { InternalResolverOptions, Matcher } from './types'
+import type { ResolverOptions, Matcher } from './types'
 
-// Vscode change cwd
-const cwdMappersMap: Map<string, Matcher[]> = new Map()
+const matchersMap: Map<string, Matcher[]> = new Map()
 
 /**
  * Initialize the resolver with the given options
  * @param options internal resolver options
- * @returns matchers for current cwd
+ * @returns matchers for options
  */
-export function init(options: InternalResolverOptions): Matcher[] {
-  let matchers: Matcher[] | undefined = cwdMappersMap.get(process.cwd())
+export function init(options: ResolverOptions, digestOfOptions: string): Matcher[] {
+  const matchersByDigets: Matcher[] | undefined = matchersMap.get(digestOfOptions)
 
-  if (matchers) {
-    return matchers
+  logger('[INIT] Digest of options: ', digestOfOptions)
+
+  if (matchersByDigets) {
+    logger('[INIT] Use matchers from cache by digest')
+    return matchersByDigets
   }
 
-  logger('[MAPPER] Init mapper for current cwd', process.cwd())
+  logger('[INIT] Create matchers for current options: ', options)
 
   const configPaths =
     typeof options.project === 'string'
@@ -34,8 +36,6 @@ export function init(options: InternalResolverOptions): Matcher[] {
         : [process.cwd()]
 
   const ignore = ['!**/node_modules/**']
-
-  logger('[MAPPER] options.project:', configPaths)
 
   // turn glob patterns into paths
   const projectPaths = [
@@ -47,9 +47,9 @@ export function init(options: InternalResolverOptions): Matcher[] {
     ]),
   ]
 
-  logger('[MAPPER] config paths of projects:', projectPaths)
+  const matchers: Matcher[] = []
 
-  matchers = []
+  logger('[INIT] config paths of projects:', projectPaths)
 
   for (let i = 0; i < projectPaths.length; i++) {
     let tsconfigResult = null
@@ -71,9 +71,9 @@ export function init(options: InternalResolverOptions): Matcher[] {
     }
   }
 
-  logger('[MAPPER] created matchers:', matchers)
+  logger('[INIT] created matchers:', matchers)
 
-  cwdMappersMap.set(process.cwd(), matchers)
+  matchersMap.set(digestOfOptions, matchers)
 
   return matchers
 }
